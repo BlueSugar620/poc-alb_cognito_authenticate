@@ -14,7 +14,7 @@ resource "aws_cognito_user_pool" "main" {
 
   account_recovery_setting {
     recovery_mechanism {
-      name = "verified_phone_number"
+      name     = "verified_phone_number"
       priority = 1
     }
   }
@@ -30,9 +30,9 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 resource "aws_acm_certificate" "auth" {
-  domain_name               = "auth.${var.domain_name}"
-  validation_method         = "DNS"
-  provider                  = aws.virginia
+  domain_name       = "auth.${var.domain_name}"
+  validation_method = "DNS"
+  provider          = aws.virginia
 }
 
 resource "aws_route53_record" "auth_certificate" {
@@ -45,17 +45,17 @@ resource "aws_route53_record" "auth_certificate" {
   }
 
   allow_overwrite = true
-  name    = each.value.name
-  type    = each.value.type
-  records = [each.value.record]
-  zone_id = data.aws_route53_zone.main.zone_id
-  ttl     = 60
+  name            = each.value.name
+  type            = each.value.type
+  records         = [each.value.record]
+  zone_id         = data.aws_route53_zone.main.zone_id
+  ttl             = 60
 }
 
 resource "aws_acm_certificate_validation" "auth" {
   certificate_arn         = aws_acm_certificate.auth.arn
   validation_record_fqdns = [for record in aws_route53_record.auth_certificate : record.fqdn]
-  provider = aws.virginia
+  provider                = aws.virginia
 }
 
 resource "aws_cognito_user_pool_domain" "main" {
@@ -66,14 +66,14 @@ resource "aws_cognito_user_pool_domain" "main" {
   depends_on = [aws_acm_certificate_validation.auth]
 }
 
-resource "aws_route53_record" "auth" { 
+resource "aws_route53_record" "auth" {
   zone_id = data.aws_route53_zone.main.zone_id
-  name = "auth.${data.aws_route53_zone.main.name}"
-  type = "A"
+  name    = "auth.${data.aws_route53_zone.main.name}"
+  type    = "A"
 
   alias {
-    name = aws_cognito_user_pool_domain.main.cloudfront_distribution
-    zone_id = aws_cognito_user_pool_domain.main.cloudfront_distribution_zone_id
+    name                   = aws_cognito_user_pool_domain.main.cloudfront_distribution
+    zone_id                = aws_cognito_user_pool_domain.main.cloudfront_distribution_zone_id
     evaluate_target_health = true
   }
 }

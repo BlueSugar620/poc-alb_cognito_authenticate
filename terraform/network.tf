@@ -81,10 +81,12 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_route_table" "private" {
+  count = length(aws_subnet.private)
+
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "private"
+    Name = "private-${count.index}"
   }
 }
 
@@ -92,7 +94,7 @@ resource "aws_route_table_association" "private" {
   count = length(aws_subnet.private)
 
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.private[count.index].id
 }
 
 resource "aws_eip" "nat_gateway" {
@@ -111,8 +113,10 @@ resource "aws_nat_gateway" "main" {
 }
 
 resource "aws_route" "private_ipv4" {
-  route_table_id         = aws_route_table.private.id
-  nat_gateway_id         = aws_nat_gateway.main.id
+  count = length(aws_subnet.private)
+
+  route_table_id         = aws_route_table.private[count.index].id
+  nat_gateway_id         = aws_nat_gateway.main[count.index].id
   destination_cidr_block = "0.0.0.0/0"
 }
 

@@ -28,12 +28,12 @@ resource "aws_ecs_service" "main" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.https.arn
+    target_group_arn = aws_lb_target_group.http.arn
     container_name   = "alb-cognito-sample"
     container_port   = 80
   }
 
-  depends_on = [aws_acm_certificate_validation.main, aws_lb.main]
+  depends_on = [aws_acm_certificate_validation.main, aws_lb.main, aws_lb_target_group.http]
 }
 
 resource "aws_security_group" "app" {
@@ -49,8 +49,3 @@ resource "aws_vpc_security_group_ingress_rule" "app_ipv4" {
   referenced_security_group_id = aws_security_group.lb.id
 }
 
-resource "aws_vpc_security_group_egress_rule" "app_ipv4" {
-  security_group_id = aws_security_group.app.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1"
-}
